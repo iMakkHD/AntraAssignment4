@@ -1,0 +1,95 @@
+-- Question 1
+create view view_product_order_mak
+as
+Select p.productid, sum(od.quantity) as TotalQuantity
+from dbo.Products p, dbo.[Order Details] od
+where p.ProductID = od.ProductID
+Group by p.ProductID
+
+-- Question 2
+create procedure sp_product_order_mak
+@id int ,
+@quantity int output
+as
+Select @quantity = TotalQuantity
+from view_product_order_mak
+where @id = ProductID
+
+declare @q int
+execute sp_product_order_mak 1, @quantity = @q output
+print @q
+
+-- Question 3
+create procedure sp_product_order_city_mak
+@pName varchar(30)
+as
+begin
+declare @t1 table(City varchar(30), Quantity int)
+insert @t1 values((Select top 5 o.shipcity from dbo.Orders o, dbo.Products p, dbo.[Order Details] od 
+where o.OrderID = od.OrderID and od.ProductID = p.ProductID and p.ProductName = @pName order by od.Quantity),(Select top 5 od.Quantity 
+from dbo.Orders o, dbo.Products p, dbo.[Order Details] od 
+where o.OrderID = od.OrderID and od.ProductID = p.ProductID and p.ProductName = @pName order by od.Quantity))
+
+Select * from @t1
+end
+
+-- Question 4
+CREATE TABLE city_mak (
+	ID int,
+	City varchar(30)
+)
+INSERT INTO city_mak (ID, City)
+VALUES
+(1, 'Seattle'),
+(2,'Green Bay')
+Select * from city_mak
+
+CREATE TABLE people_mak (
+	ID int,
+	pName varchar(30),
+	city int
+	)
+INSERT INTO people_mak (ID, pName, city)
+VALUES
+(1, 'Aaron Rodgers', 2),
+(2, 'Russell Wilson', 1),
+(3, 'Jody Nelson', 2)
+
+Update city_mak
+Set
+city = 'Madison'
+Where city = 'Seattle'
+
+create view Packers_mak
+as
+Select pm.pName
+From people_mak pm, city_mak cm
+Where cm.ID = pm.city and cm.City = 'Green Bay'
+
+Select * from Packers_mak
+Drop view packers_mak
+drop table city_mak
+drop table people_mak
+
+--Question 5
+drop procedure sp_birthday_employees_mak
+drop table birthday_employees_mak
+
+create procedure sp_birthday_employees_mak
+as
+begin
+create table birthday_employees_mak(
+bName varchar(30) 
+)
+INSERT INTO birthday_employees_mak (bName)
+Select e.FirstName + ' ' + e.LastName as fName from dbo.Employees e where Month(e.BirthDate) = 2
+
+Select * from birthday_employees_mak
+end
+
+execute sp_birthday_employees_mak
+
+-- Question 6
+You can create two tables that are the union of two tables. 
+This will create two seperate but equivalent resultsets because union combines the data 
+on top of each other.
